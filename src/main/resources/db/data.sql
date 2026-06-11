@@ -1,0 +1,2 @@
+INSERT INTO accounts (account_number, balance, client_name) VALUES ('1234567890', 1000.00, 'John Doe');
+INSERT INTO accounts (account_number, balance, client_name) VALUES ('0987654321', 2000.00, 'Jane Doe');
