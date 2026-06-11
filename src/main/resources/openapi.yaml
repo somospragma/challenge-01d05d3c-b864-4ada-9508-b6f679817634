@@ -1,56 +1,43 @@
-openapi: 3.0.1
+openapi: 3.0.3
 info:
-  title: Banking API
+  title: Product API
   version: 1.0.0
 paths:
-  /api/accounts:
+  /api/products:
     post:
-      summary: Create a new account
+      summary: Registrar un nuevo producto
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountDTO'
+              $ref: '#/components/schemas/Product'
       responses:
         '201':
-          description: Account created
+          description: Producto registrado exitosamente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountDTO'
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Error de validación
     get:
-      summary: Get all accounts
+      summary: Obtener todos los productos
       responses:
         '200':
-          description: List of accounts
+          description: Lista de productos obtenida exitosamente
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AccountDTO'
-  /api/accounts/{id}:
-    get:
-      summary: Get account by ID
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Account details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccountDTO'
+                  $ref: '#/components/schemas/Product'
+  /api/products/{id}:
     put:
-      summary: Update account by ID
+      summary: Actualizar un producto por ID
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
           schema:
             type: integer
@@ -59,37 +46,41 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountDTO'
+              $ref: '#/components/schemas/Product'
       responses:
         '200':
-          description: Account updated
+          description: Producto actualizado exitosamente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountDTO'
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Producto no encontrado
     delete:
-      summary: Delete account by ID
+      summary: Eliminar un producto por ID
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
           schema:
             type: integer
       responses:
         '204':
-          description: Account deleted
+          description: Producto eliminado exitosamente
+        '404':
+          description: Producto no encontrado
 components:
   schemas:
-    AccountDTO:
+    Product:
       type: object
       properties:
         id:
           type: integer
-          format: int64
-        accountNumber:
+        name:
           type: string
-        balance:
+        price:
           type: number
-          format: double
-        clientName:
+        stock:
+          type: integer
+        category:
           type: string

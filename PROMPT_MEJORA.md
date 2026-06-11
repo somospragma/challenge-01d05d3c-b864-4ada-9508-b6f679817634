@@ -123,17 +123,143 @@ El participante que recibirá este proyecto los debe encontrar y resolver él mi
 
 INPUT
 Aquí está la cadena con los archivos:
-// === ARCHIVO: src/main/java/com/pragma/banking/BankingApplication.java ===
-package com.pragma.banking;
+// === ARCHIVO: src/main/java/com/pragma/api/ProductController.java ===
+package com.pragma.api;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.pragma.domain.model.Product;
+import com.pragma.domain.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@SpringBootApplication
-public class BankingApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(BankingApplication.class, args);
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    @Autowired
+    private ProductService productService;
+
+    @Operation(summary = "Registrar un nuevo producto")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Producto registrado exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Product.class))),
+            @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content)
+    })
+    @PostMapping
+    public ResponseEntity<Product> registerProduct(@Valid @RequestBody Product product) {
+        Product registeredProduct = productService.registerProduct(product);
+        return new ResponseEntity<>(registeredProduct, HttpStatus.CREATED);
     }
+
+    @Operation(summary = "Obtener todos los productos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de productos obtenida exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Product.class)))
+    })
+    @GetMapping
+    public ResponseEntity<List<Product>> getAllProducts() {
+        List<Product> products = productService.getAllProducts();
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Actualizar un producto por ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Producto actualizado exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Product.class))),
+            @ApiResponse(responseCode = "404", description = "Producto no encontrado", content = @Content)
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
+        Product updatedProduct = productService.updateProduct(id, product);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Eliminar un producto por ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Producto eliminado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Producto no encontrado", content = @Content)
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+}
+
+// === ARCHIVO: src/main/java/com/pragma/domain/model/Product.java ===
+package com.pragma.domain.model;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+
+public record Product(
+        Long id,
+        @NotBlank @Size(max = 100) String name,
+        @NotNull @Min(0) BigDecimal price,
+        @NotNull @Min(0) Integer stock,
+        @NotBlank @Size(max = 100) String category
+) {}
+
+// === ARCHIVO: src/main/java/com/pragma/domain/service/ProductService.java ===
+package com.pragma.domain.service;
+
+import com.pragma.domain.model.Product;
+import com.pragma.infrastructure.adapter.ProductRepository;
+import jakarta.transaction.Transactional;
+import java.util.List;
+
+public class ProductService {
+
+    private final ProductRepository productRepository;
+
+    public ProductService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    public Product registerProduct(Product product) {
+        // Implementar la lógica para registrar un producto
+        return productRepository.save(product);
+    }
+
+    public List<Product> getAllProducts() {
+        // Implementar la lógica para obtener todos los productos
+        return productRepository.findAll();
+    }
+
+    public Product updateProduct(Long id, Product product) {
+        // Implementar la lógica para actualizar un producto
+        return productRepository.update(id, product);
+    }
+
+    public void deleteProduct(Long id) {
+        // Implementar la lógica para eliminar un producto
+        productRepository.deleteById(id);
+    }
+}
+
+// === ARCHIVO: src/main/java/com/pragma/infrastructure/adapter/ProductRepository.java ===
+package com.pragma.infrastructure.adapter;
+
+import com.pragma.domain.model.Product;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface ProductRepository {
+
+    Product save(Product product);
+    List<Product> findAll();
+    Product update(Long id, Product product);
+    void deleteById(Long id);
 }
 
 // === ARCHIVO: src/main/resources/application.properties ===
@@ -144,260 +270,47 @@ spring.datasource.password=
 spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
 spring.h2.console.enabled=true
 
-// === ARCHIVO: src/main/java/com/pragma/banking/controller/AccountController.java ===
-package com.pragma.banking.controller;
-
-import com.pragma.banking.dto.AccountDTO;
-import com.pragma.banking.service.AccountService;
-import com.pragma.banking.exception.AccountNotFoundException;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/accounts")
-public class AccountController {
-
-    @Autowired
-    private AccountService accountService;
-
-    @Operation(summary = "Create a new account")
-    @PostMapping
-    public ResponseEntity<AccountDTO> createAccount(@RequestBody AccountDTO accountDTO) {
-        return new ResponseEntity<>(accountService.createAccount(accountDTO), HttpStatus.CREATED);
-    }
-
-    @Operation(summary = "Get account by ID")
-    @GetMapping("/{id}")
-    public ResponseEntity<AccountDTO> getAccountById(@PathVariable Long id) {
-        return new ResponseEntity<>(accountService.getAccountById(id), HttpStatus.OK);
-    }
-
-    @Operation(summary = "Update account by ID")
-    @PutMapping("/{id}")
-    public ResponseEntity<AccountDTO> updateAccount(@PathVariable Long id, @RequestBody AccountDTO accountDTO) {
-        return new ResponseEntity<>(accountService.updateAccount(id, accountDTO), HttpStatus.OK);
-    }
-
-    @Operation(summary = "Delete account by ID")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable Long id) {
-        accountService.deleteAccount(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-}
-
-// === ARCHIVO: src/main/java/com/pragma/banking/service/AccountService.java ===
-package com.pragma.banking.service;
-
-import com.pragma.banking.dto.AccountDTO;
-import com.pragma.banking.exception.AccountNotFoundException;
-import com.pragma.banking.repository.AccountRepository;
-import com.pragma.banking.model.Account;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-@Service
-public class AccountService {
-
-    @Autowired
-    private AccountRepository accountRepository;
-
-    @Transactional
-    public AccountDTO createAccount(AccountDTO accountDTO) {
-        if (accountRepository.existsByAccountNumber(accountDTO.getAccountNumber())) {
-            throw new AccountNotFoundException("Account number must be unique");
-        }
-        Account account = new Account();
-        account.setAccountNumber(accountDTO.getAccountNumber());
-        account.setBalance(accountDTO.getBalance());
-        account.setClientName(accountDTO.getClientName());
-        Account savedAccount = accountRepository.save(account);
-        return new AccountDTO(savedAccount.getId(), savedAccount.getAccountNumber(), savedAccount.getBalance(), savedAccount.getClientName());
-    }
-
-    @Transactional
-    public AccountDTO getAccountById(Long id) {
-        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found"));
-        return new AccountDTO(account.getId(), account.getAccountNumber(), account.getBalance(), account.getClientName());
-    }
-
-    @Transactional
-    public AccountDTO updateAccount(Long id, AccountDTO accountDTO) {
-        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found"));
-        if (accountRepository.existsByAccountNumberAndIdNot(accountDTO.getAccountNumber(), id)) {
-            throw new AccountNotFoundException("Account number must be unique");
-        }
-        account.setAccountNumber(accountDTO.getAccountNumber());
-        account.setBalance(accountDTO.getBalance());
-        account.setClientName(accountDTO.getClientName());
-        Account updatedAccount = accountRepository.save(account);
-        return new AccountDTO(updatedAccount.getId(), updatedAccount.getAccountNumber(), updatedAccount.getBalance(), updatedAccount.getClientName());
-    }
-
-    @Transactional
-    public void deleteAccount(Long id) {
-        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found"));
-        accountRepository.delete(account);
-    }
-}
-
-// === ARCHIVO: src/main/java/com/pragma/banking/repository/AccountRepository.java ===
-package com.pragma.banking.repository;
-
-import com.pragma.banking.model.Account;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
-
-@Repository
-public interface AccountRepository extends JpaRepository<Account, Long> {
-    boolean existsByAccountNumber(String accountNumber);
-    boolean existsByAccountNumberAndIdNot(String accountNumber, Long id);
-}
-
-// === ARCHIVO: src/main/resources/db/schema.sql ===
-CREATE TABLE accounts (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    account_number VARCHAR(255) NOT NULL,
-    balance DECIMAL NOT NULL,
-    client_name VARCHAR(255) NOT NULL
-);
-
-// === ARCHIVO: src/main/resources/db/data.sql ===
-INSERT INTO accounts (account_number, balance, client_name) VALUES ('1234567890', 1000.00, 'John Doe');
-INSERT INTO accounts (account_number, balance, client_name) VALUES ('0987654321', 2000.00, 'Jane Doe');
-
-// === ARCHIVO: src/main/java/com/pragma/banking/dto/AccountDTO.java ===
-package com.pragma.banking.dto;
-
-public class AccountDTO {
-    private Long id;
-    private String accountNumber;
-    private Double balance;
-    private String clientName;
-
-    public AccountDTO() {}
-
-    public AccountDTO(Long id, String accountNumber, Double balance, String clientName) {
-        this.id = id;
-        this.accountNumber = accountNumber;
-        this.balance = balance;
-        this.clientName = clientName;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getAccountNumber() {
-        return accountNumber;
-    }
-
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
-    }
-
-    public Double getBalance() {
-        return balance;
-    }
-
-    public void setBalance(Double balance) {
-        this.balance = balance;
-    }
-
-    public String getClientName() {
-        return clientName;
-    }
-
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
-    }
-}
-
-// === ARCHIVO: src/main/java/com/pragma/banking/exception/AccountNotFoundException.java ===
-package com.pragma.banking.exception;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class AccountNotFoundException extends RuntimeException {
-    public AccountNotFoundException(String message) {
-        super(message);
-    }
-}
-
 // === ARCHIVO: src/main/resources/openapi.yaml ===
-openapi: 3.0.1
+openapi: 3.0.3
 info:
-  title: Banking API
+  title: Product API
   version: 1.0.0
 paths:
-  /api/accounts:
+  /api/products:
     post:
-      summary: Create a new account
+      summary: Registrar un nuevo producto
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountDTO'
+              $ref: '#/components/schemas/Product'
       responses:
         '201':
-          description: Account created
+          description: Producto registrado exitosamente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountDTO'
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Error de validación
     get:
-      summary: Get all accounts
+      summary: Obtener todos los productos
       responses:
         '200':
-          description: List of accounts
+          description: Lista de productos obtenida exitosamente
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AccountDTO'
-  /api/accounts/{id}:
-    get:
-      summary: Get account by ID
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Account details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccountDTO'
+                  $ref: '#/components/schemas/Product'
+  /api/products/{id}:
     put:
-      summary: Update account by ID
+      summary: Actualizar un producto por ID
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
           schema:
             type: integer
@@ -406,93 +319,182 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountDTO'
+              $ref: '#/components/schemas/Product'
       responses:
         '200':
-          description: Account updated
+          description: Producto actualizado exitosamente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountDTO'
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Producto no encontrado
     delete:
-      summary: Delete account by ID
+      summary: Eliminar un producto por ID
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
           schema:
             type: integer
       responses:
         '204':
-          description: Account deleted
+          description: Producto eliminado exitosamente
+        '404':
+          description: Producto no encontrado
 components:
   schemas:
-    AccountDTO:
+    Product:
       type: object
       properties:
         id:
           type: integer
-          format: int64
-        accountNumber:
+        name:
           type: string
-        balance:
+        price:
           type: number
-          format: double
-        clientName:
+        stock:
+          type: integer
+        category:
           type: string
 
-// === ARCHIVO: src/main/java/com/pragma/banking/model/Account.java ===
-package com.pragma.banking.model;
+// === ARCHIVO: src/test/java/com/pragma/domain/service/ProductServiceTest.java ===
+package com.pragma.domain.service;
 
-import jakarta.persistence.*;
+import com.pragma.domain.model.Product;
+import com.pragma.infrastructure.adapter.ProductRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@Entity
-public class Account {
+class ProductServiceTest {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Mock
+    private ProductRepository productRepository;
 
-    @Column(unique = true)
-    private String accountNumber;
+    @InjectMocks
+    private ProductService productService;
 
-    private Double balance;
-
-    private String clientName;
-
-    public Account() {}
-
-    public Long getId() {
-        return id;
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    @Test
+    void testRegisterProduct() {
+        Product product = new Product(1L, "Producto 1", new BigDecimal("10.00"), 10, "Categoría 1");
+        when(productRepository.save(product)).thenReturn(product);
+        Product registeredProduct = productService.registerProduct(product);
+        assertNotNull(registeredProduct);
+        assertEquals(product, registeredProduct);
     }
 
-    public String getAccountNumber() {
-        return accountNumber;
+    @Test
+    void testGetAllProducts() {
+        Product product1 = new Product(1L, "Producto 1", new BigDecimal("10.00"), 10, "Categoría 1");
+        Product product2 = new Product(2L, "Producto 2", new BigDecimal("20.00"), 20, "Categoría 2");
+        when(productRepository.findAll()).thenReturn(List.of(product1, product2));
+        List<Product> products = productService.getAllProducts();
+        assertNotNull(products);
+        assertEquals(2, products.size());
     }
 
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
+    @Test
+    void testUpdateProduct() {
+        Product product = new Product(1L, "Producto 1", new BigDecimal("10.00"), 10, "Categoría 1");
+        when(productRepository.update(1L, product)).thenReturn(product);
+        Product updatedProduct = productService.updateProduct(1L, product);
+        assertNotNull(updatedProduct);
+        assertEquals(product, updatedProduct);
     }
 
-    public Double getBalance() {
-        return balance;
-    }
-
-    public void setBalance(Double balance) {
-        this.balance = balance;
-    }
-
-    public String getClientName() {
-        return clientName;
-    }
-
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
+    @Test
+    void testDeleteProduct() {
+        doNothing().when(productRepository).deleteById(1L);
+        productService.deleteProduct(1L);
+        verify(productRepository, times(1)).deleteById(1L);
     }
 }
 
+// === ARCHIVO: src/main/java/com/pragma/PragmaApplication.java ===
+package com.pragma;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class PragmaApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(PragmaApplication.class, args);
+    }
+}
+
+// === ARCHIVO: pom.xml ===
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.pragma</groupId>
+    <artifactId>pragma-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>Pragma API</name>
+    <description>API REST para gestión de productos</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <spring-boot.version>3.4.0</spring-boot.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>${spring-boot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>${spring-boot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-boot-starter</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>${spring-boot.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
 ```

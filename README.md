@@ -1,13 +1,13 @@
-# Desarrollo de una API REST en un dominio de banca
+# Desarrollo de una API REST para gestión de productos
 
-Se requiere desarrollar una API REST para gestionar operaciones bancarias. La API debe permitir la creación, lectura, actualización y eliminación de cuentas bancarias. El sistema debe validar que los números de cuenta sean únicos y que los saldos no sean negativos. Además, se debe asegurar que la API sea idempotente para las operaciones de creación y actualización de cuentas. El dominio incluye actores como 'cliente', 'gestor de cuentas' y'sistema de auditoría'. Las operaciones deben ser consistentes y tolerantes a fallos temporales del sistema de auditoría.
+En el contexto de una tienda en línea, necesitas desarrollar una API REST que permita la gestión de productos. Los productos tienen atributos como nombre, precio, stock y categoría. La API debe registrar productos, validar que no haya nombres duplicados y que los precios no sean negativos. Además, debe manejar correctamente los errores de validación y garantizar la idempotencia en las solicitudes.
 
 ## Informacion General
 
 | Campo | Valor |
 |-------|-------|
 | **Tema** | Java Spring Boot REST API |
-| **Nivel** | junior-l1 |
+| **Nivel** | junior-l2 |
 | **Tipo** | practical |
 | **Tiempo estimado** | 8 horas |
 
@@ -21,11 +21,11 @@ Se requiere desarrollar una API REST para gestionar operaciones bancarias. La AP
 
 **Instrucciones:**
 
-- Asegúrate de tener instalado para ejecutar el proyecto: Un IDE o editor de código.
+- Asegúrate de tener instalado para ejecutar el proyecto: JDK 17+, Maven 3.9+, IDE con soporte Java.
 - Copia todo el contenido del campo **Código Base** de este reto — incluyendo el texto de instrucciones que aparece al inicio.
 - Abre un asistente de IA (Claude en claude.ai, ChatGPT o Gemini — se recomienda Claude), pega el contenido copiado en el chat y envíalo.
 - El asistente analizará los archivos, corregirá errores y generará un archivo ZIP descargable. Descárgalo y extráelo en la carpeta donde quieras trabajar.
-- Verifica que el proyecto arranca sin errores.
+- Ejecuta `mvn compile` en la raíz. Si no hay errores, estás listo.
 
 **Entregable:** El proyecto compila/arranca sin errores.
 
@@ -38,86 +38,83 @@ Se requiere desarrollar una API REST para gestionar operaciones bancarias. La AP
 
 </details>
 
-### Fase 1: Definición del dominio y modelado de datos
+### Fase 1: Registro de productos
 
-**Objetivo:** Definir el dominio y modelar las entidades necesarias para la API.
+**Objetivo:** Implementar la funcionalidad básica para registrar productos.
+
+**Tiempo estimado:** 3 horas
+
+**Instrucciones:**
+
+- Crear un endpoint POST para registrar productos.
+- Validar que el nombre del producto no esté duplicado y que el precio sea positivo.
+- Garantizar la idempotencia en las solicitudes de registro.
+
+**Entregable:** Endpoint POST funcional para registrar productos con validaciones básicas y garantía de idempotencia.
+
+<details>
+<summary>Pistas de conocimiento</summary>
+
+- Considera cómo almacenar y comparar los nombres de los productos para evitar duplicados.
+- Piensa en cómo manejar los errores de validación de manera consistente.
+
+</details>
+
+### Fase 2: Manejo de errores y validaciones
+
+**Objetivo:** Mejorar la API para manejar correctamente los errores y validaciones.
+
+**Tiempo estimado:** 3 horas
+
+**Instrucciones:**
+
+- Implementar respuestas HTTP adecuadas para diferentes tipos de errores (por ejemplo, 400 para errores de validación).
+- Documentar los errores utilizando Swagger.
+
+**Entregable:** API con manejo mejorado de errores y validaciones, documentada con Swagger.
+
+<details>
+<summary>Pistas de conocimiento</summary>
+
+- Investiga los códigos de estado HTTP adecuados para diferentes tipos de errores.
+- Reflexiona sobre cómo documentar los errores de manera clara y útil para los consumidores de la API.
+
+</details>
+
+### Fase 3: Optimización y refactorización
+
+**Objetivo:** Optimizar y refactorizar la API para mejorar su rendimiento y mantenibilidad.
 
 **Tiempo estimado:** 2 horas
 
 **Instrucciones:**
 
-- Identificar los actores y sus interacciones en el dominio de la banca.
-- Modelar las entidades 'cuenta bancaria' y 'cliente' con sus atributos y relaciones.
-- Establecer las reglas de validación para los números de cuenta y los saldos.
+- Identificar y eliminar duplicaciones de código.
+- Optimizar las consultas a la base de datos.
+- Refactorizar el código para mejorar su legibilidad y mantenibilidad.
 
-**Entregable:** Diagrama de entidades y reglas de validación documentadas.
-
-<details>
-<summary>Pistas de conocimiento</summary>
-
-- Considera las relaciones entre las entidades y cómo se validarán los datos.
-- Piensa en cómo garantizar la unicidad de los números de cuenta.
-
-</details>
-
-### Fase 2: Implementación de las operaciones CRUD
-
-**Objetivo:** Implementar las operaciones de creación, lectura, actualización y eliminación de cuentas bancarias.
-
-**Tiempo estimado:** 3 horas
-
-**Instrucciones:**
-
-- Desarrollar los endpoints REST para las operaciones CRUD de cuentas bancarias.
-- Asegurar que las operaciones de creación y actualización sean idempotentes.
-- Implementar la validación de los números de cuenta y los saldos.
-
-**Entregable:** Endpoints REST funcionales para las operaciones CRUD de cuentas bancarias.
+**Entregable:** API refactorizada y optimizada con mejoras en rendimiento y mantenibilidad.
 
 <details>
 <summary>Pistas de conocimiento</summary>
 
-- Recuerda que las operaciones de creación y actualización deben ser idempotentes.
-- Considera cómo manejar los errores de validación y los fallos temporales del sistema de auditoría.
-
-</details>
-
-### Fase 3: Integración con el sistema de auditoría
-
-**Objetivo:** Integrar la API con el sistema de auditoría para registrar las operaciones realizadas.
-
-**Tiempo estimado:** 3 horas
-
-**Instrucciones:**
-
-- Implementar la integración con el sistema de auditoría para registrar las operaciones de creación, lectura, actualización y eliminación de cuentas bancarias.
-- Asegurar que la API continúe funcionando correctamente ante fallos temporales del sistema de auditoría.
-
-**Entregable:** API REST integrada con el sistema de auditoría, capaz de registrar las operaciones realizadas.
-
-<details>
-<summary>Pistas de conocimiento</summary>
-
-- Considera cómo manejar los fallos temporales del sistema de auditoría para asegurar la consistencia de las operaciones.
-- Piensa en cómo garantizar que la API continúe funcionando correctamente ante estos fallos.
+- Busca patrones de diseño que puedan ayudarte a eliminar duplicaciones de código.
+- Investiga técnicas para optimizar las consultas a la base de datos.
 
 </details>
 
 ## Dimensiones Evaluadas
 
-- **queEs**: ¿Qué es una API REST y cuáles son sus componentes principales?
-- **paraQueSirve**: ¿Para qué sirve una API REST en el contexto de una aplicación bancaria?
-- **comoSeUsa**: ¿Cómo se usan los endpoints REST para realizar operaciones CRUD en una API?
-- **erroresComunes**: ¿Cuáles son los errores comunes al implementar una API REST y cómo se pueden evitar?
-- **queDecisionesImplica**: ¿Qué decisiones implica la integración de una API REST con un sistema de auditoría?
+- **queEs**: ¿Qué es un endpoint REST y cuál es su propósito en una API?
+- **paraQueSirve**: ¿Para qué sirve la validación de datos en una API REST?
+- **comoSeUsa**: ¿Cómo se usa Swagger para documentar una API REST?
+- **erroresComunes**: ¿Cuáles son los errores comunes al desarrollar una API REST y cómo se pueden evitar?
 
 ## Criterios de Evaluacion
 
-- Definición clara del dominio y modelado de entidades.
-- Implementación correcta de los endpoints REST para las operaciones CRUD.
-- Garantía de idempotencia en las operaciones de creación y actualización.
-- Validación correcta de los números de cuenta y los saldos.
-- Integración exitosa con el sistema de auditoría y manejo de fallos temporales.
+- Implementar un endpoint POST para registrar productos con validaciones básicas y garantía de idempotencia.
+- Manejar correctamente los errores y validaciones en la API.
+- Optimizar y refactorizar la API para mejorar su rendimiento y mantenibilidad.
 
 ---
 
